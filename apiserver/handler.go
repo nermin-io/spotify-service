@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"github.com/nermin-io/spotify-service/apiserver/middleware"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -8,5 +9,5 @@ import (
 func NewHandler(logger *zap.Logger) http.Handler {
 	mux := http.NewServeMux()
 
-	return mux
+	return middleware.Apply(mux, middleware.NewLoggingMiddleware(logger))
 }
