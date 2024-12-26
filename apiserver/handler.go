@@ -18,6 +18,23 @@ func NewHandler(logger *zap.Logger, spotifyClient *spotify.Client) http.Handler 
 	return middleware.Apply(mux, middleware.NewLoggingMiddleware(logger))
 }
 
+func encode[T any](w http.ResponseWriter, _ *http.Request, status int, v T) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(&v); err != nil {
+		return fmt.Errorf("encode json: %w", err)
+	}
+	return nil
+}
+
+func decode[T any](r *http.Request) (*T, error) {
+	var v T
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		return nil, fmt.Errorf("decode json: %w", err)
+	}
+	return &v, nil
+}
+
 type currentlyPlayingResponse struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
@@ -51,23 +68,6 @@ func handleGetCurrentTrack(logger *zap.Logger, spotifyClient *spotify.Client) ht
 			logger.Warn("unable to encode response", zap.Error(err))
 		}
 	})
-}
-
-func encode[T any](w http.ResponseWriter, _ *http.Request, status int, v T) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(&v); err != nil {
-		return fmt.Errorf("encode json: %w", err)
-	}
-	return nil
-}
-
-func decode[T any](r *http.Request) (*T, error) {
-	var v T
-	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
-		return nil, fmt.Errorf("decode json: %w", err)
-	}
-	return &v, nil
 }
 
 func getImageURLByDimensions(images []*spotify.Image, w int, h int) (string, error) {

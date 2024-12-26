@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 )
 
@@ -31,7 +32,11 @@ func (sc *Client) CurrentlyPlayingTrack(ctx context.Context) (*CurrentlyPlaying,
 	if err != nil {
 		return nil, fmt.Errorf("spotify request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			sc.logger.Error("could not close response body", zap.Error(err))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unable to get currently playing track: %s", resp.Status)

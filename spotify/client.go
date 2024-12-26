@@ -28,7 +28,7 @@ type Client struct {
 func NewClient(logger *zap.Logger) *Client {
 	return &Client{
 		logger:         logger,
-		httpClient:     &http.Client{},
+		httpClient:     http.DefaultClient,
 		baseURL:        os.Getenv("SPOTIFY_BASE_URL"),
 		credentialsURL: os.Getenv("SPOTIFY_CREDENTIALS_URL"),
 		clientID:       os.Getenv("SPOTIFY_CLIENT_ID"),
@@ -74,7 +74,11 @@ func (sc *Client) refreshAccessToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not send request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			sc.logger.Error("could not close response body", zap.Error(err))
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to refresh token, status: %d", resp.StatusCode)
