@@ -3,6 +3,7 @@ package apiserver
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/nermin-io/spotify-service/apiserver/middleware"
 	"github.com/nermin-io/spotify-service/spotify"
 	"go.uber.org/zap"
@@ -41,16 +42,32 @@ func handleGetCurrentTrack(logger *zap.Logger, spotifyClient *spotify.Client) ht
 		resp := currentlyPlayingResponse{
 			ID:       track.Item.ID,
 			Name:     track.Item.Name,
-			Artists:  artistNamesToString(track.Item.Artists),
+			Artists:  getArtistNamesAsString(track.Item.Artists),
 			URL:      track.Item.ExternalURLs["spotify"],
 			Playing:  track.IsPlaying,
 			ImageURL: imageURL,
 		}
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(&resp); err != nil {
-			logger.Error("unable to encode response", zap.Error(err))
+		if err := encode(w, r, http.StatusOK, &resp); err != nil {
+			logger.Warn("unable to encode response", zap.Error(err))
 		}
 	})
+}
+
+func encode[T any](w http.ResponseWriter, _ *http.Request, status int, v T) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(&v); err != nil {
+		return fmt.Errorf("encode json: %w", err)
+	}
+	return nil
+}
+
+func decode[T any](r *http.Request) (*T, error) {
+	var v T
+	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+		return nil, fmt.Errorf("decode json: %w", err)
+	}
+	return &v, nil
 }
 
 func getImageURLByDimensions(images []*spotify.Image, w int, h int) (string, error) {
@@ -62,7 +79,7 @@ func getImageURLByDimensions(images []*spotify.Image, w int, h int) (string, err
 	return "", errors.New("no images with those dimensions")
 }
 
-func artistNamesToString(artists []*spotify.Artist) string {
+func getArtistNamesAsString(artists []*spotify.Artist) string {
 	var sb strings.Builder
 	for idx, artist := range artists {
 		sb.WriteString(artist.Name)

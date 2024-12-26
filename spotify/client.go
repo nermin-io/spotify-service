@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,6 +14,7 @@ import (
 )
 
 type Client struct {
+	logger         *zap.Logger
 	httpClient     *http.Client
 	baseURL        string
 	credentialsURL string
@@ -23,8 +25,9 @@ type Client struct {
 	refreshToken   string
 }
 
-func NewClient() *Client {
+func NewClient(logger *zap.Logger) *Client {
 	return &Client{
+		logger:         logger,
 		httpClient:     &http.Client{},
 		baseURL:        os.Getenv("SPOTIFY_BASE_URL"),
 		credentialsURL: os.Getenv("SPOTIFY_CREDENTIALS_URL"),
@@ -51,6 +54,7 @@ type tokenResponse struct {
 }
 
 func (sc *Client) refreshAccessToken(ctx context.Context) error {
+	sc.logger.Debug("refreshing access token")
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
@@ -62,8 +66,8 @@ func (sc *Client) refreshAccessToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	basicToken := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", sc.clientID, sc.clientSecret)))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", basicToken))
 
 	resp, err := sc.httpClient.Do(req)

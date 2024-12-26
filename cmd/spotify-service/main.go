@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"github.com/nermin-io/spotify-service/apiserver"
 	"github.com/nermin-io/spotify-service/spotify"
@@ -14,6 +15,8 @@ import (
 	"syscall"
 	"time"
 )
+
+var debug bool
 
 func main() {
 	ctx := context.Background()
@@ -27,6 +30,9 @@ func run(ctx context.Context) error {
 	ctx, cancel := signal.NotifyContext(ctx, syscall.SIGINT)
 	defer cancel()
 
+	flag.BoolVar(&debug, "debug", false, "enable debug logging")
+	flag.Parse()
+
 	logger, err := initLogger()
 	if err != nil {
 		return err
@@ -38,7 +44,7 @@ func run(ctx context.Context) error {
 		port = "8080"
 	}
 
-	spotifyClient := spotify.NewClient()
+	spotifyClient := spotify.NewClient(logger)
 	api := apiserver.NewHandler(logger, spotifyClient)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
@@ -64,8 +70,12 @@ func run(ctx context.Context) error {
 }
 
 func initLogger() (*zap.Logger, error) {
+	logLevel := zap.InfoLevel
+	if debug {
+		logLevel = zap.DebugLevel
+	}
 	return zap.Config{
-		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Level:       zap.NewAtomicLevelAt(logLevel),
 		Development: false,
 		Encoding:    "json",
 		EncoderConfig: zapcore.EncoderConfig{
