@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nermin-io/spotify-service/apiserver"
+	"github.com/nermin-io/spotify-service/spotify"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"net/http"
@@ -37,7 +38,8 @@ func run(ctx context.Context) error {
 		port = "8080"
 	}
 
-	api := apiserver.NewHandler(logger)
+	spotifyClient := spotify.NewClient()
+	api := apiserver.NewHandler(logger, spotifyClient)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: api,
