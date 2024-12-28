@@ -7,6 +7,7 @@ import (
 	"github.com/nermin-io/spotify-service/apiserver/middleware"
 	"github.com/nermin-io/spotify-service/spotify"
 	"go.uber.org/zap"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -14,6 +15,7 @@ import (
 func NewHandler(logger *zap.Logger, spotifyClient *spotify.Client) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("GET /currently-playing", handleGetCurrentTrack(logger, spotifyClient))
+	mux.Handle("GET /healthz", handleHealthCheck(logger))
 
 	return middleware.Apply(mux, middleware.NewLoggingMiddleware(logger))
 }
@@ -66,6 +68,14 @@ func handleGetCurrentTrack(logger *zap.Logger, spotifyClient *spotify.Client) ht
 		}
 		if err := encode(w, r, http.StatusOK, &resp); err != nil {
 			logger.Warn("unable to encode response", zap.Error(err))
+		}
+	})
+}
+
+func handleHealthCheck(logger *zap.Logger) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if _, err := io.WriteString(w, "OK"); err != nil {
+			logger.Warn("failed to write response", zap.Error(err))
 		}
 	})
 }
