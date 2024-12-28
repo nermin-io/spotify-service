@@ -46,5 +46,9 @@ func (sc *Client) CurrentlyPlayingTrack(ctx context.Context) (*CurrentlyPlaying,
 		return nil, fmt.Errorf("could not decode response: %w", err)
 	}
 
+	if playing.Item == nil {
+		return nil, fmt.Errorf("no track information found: %s", playing.CurrentlyPlayingType)
+	}
+
 	return &playing, nil
 }
