@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nermin-io/spotify-service/apiserver/middleware"
+	"github.com/nermin-io/spotify-service/logging"
 	"github.com/nermin-io/spotify-service/spotify"
 	"go.uber.org/zap"
 	"io"
@@ -12,12 +13,16 @@ import (
 	"strings"
 )
 
-func NewHandler(logger *zap.Logger, spotifyClient *spotify.Client) http.Handler {
+func NewHandler(spotifyClient *spotify.Client) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("GET /currently-playing", handleGetCurrentTrack(logger, spotifyClient))
-	mux.Handle("GET /healthz", handleHealthCheck(logger))
+	mux.Handle("GET /currently-playing", handleGetCurrentTrack(spotifyClient))
+	mux.Handle("GET /healthz", handleHealthCheck())
 
-	return middleware.Apply(mux, middleware.NewLoggingMiddleware(logger))
+	return middleware.Apply(
+		mux,
+		middleware.Tracing,
+		middleware.Logger,
+	)
 }
 
 func encode[T any](w http.ResponseWriter, _ *http.Request, status int, v T) error {
@@ -46,8 +51,9 @@ type currentlyPlayingResponse struct {
 	Playing  bool   `json:"playing"`
 }
 
-func handleGetCurrentTrack(logger *zap.Logger, spotifyClient *spotify.Client) http.Handler {
+func handleGetCurrentTrack(spotifyClient *spotify.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := logging.FromContext(r.Context())
 		track, err := spotifyClient.CurrentlyPlayingTrack(r.Context())
 		if err != nil {
 			logger.Warn("unable to get current playing track", zap.Error(err))
@@ -72,8 +78,9 @@ func handleGetCurrentTrack(logger *zap.Logger, spotifyClient *spotify.Client) ht
 	})
 }
 
-func handleHealthCheck(logger *zap.Logger) http.Handler {
+func handleHealthCheck() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := logging.FromContext(r.Context())
 		if _, err := io.WriteString(w, "OK"); err != nil {
 			logger.Warn("failed to write response", zap.Error(err))
 		}

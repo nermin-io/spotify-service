@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/nermin-io/spotify-service/logging"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -19,6 +20,7 @@ type CurrentlyPlaying struct {
 }
 
 func (sc *Client) CurrentlyPlayingTrack(ctx context.Context) (*CurrentlyPlaying, error) {
+	logger := logging.FromContext(ctx)
 	if err := sc.ensureValidAccessToken(ctx); err != nil {
 		return nil, fmt.Errorf("failed to refresh token: %w", err)
 	}
@@ -34,7 +36,7 @@ func (sc *Client) CurrentlyPlayingTrack(ctx context.Context) (*CurrentlyPlaying,
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			sc.logger.Error("could not close response body", zap.Error(err))
+			logger.Error("could not close response body", zap.Error(err))
 		}
 	}()
 

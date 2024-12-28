@@ -6,9 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/nermin-io/spotify-service/apiserver"
+	"github.com/nermin-io/spotify-service/logging"
 	"github.com/nermin-io/spotify-service/spotify"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"net/http"
 	"os"
 	"os/signal"
@@ -32,7 +32,7 @@ func run(ctx context.Context) error {
 	flag.BoolVar(&debug, "debug", false, "enable debug logging")
 	flag.Parse()
 
-	logger, err := initLogger()
+	logger, err := logging.Init(debug)
 	if err != nil {
 		return err
 	}
@@ -43,8 +43,8 @@ func run(ctx context.Context) error {
 		port = "8080"
 	}
 
-	spotifyClient := spotify.NewClient(logger)
-	api := apiserver.NewHandler(logger, spotifyClient)
+	spotifyClient := spotify.NewClient()
+	api := apiserver.NewHandler(spotifyClient)
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", port),
 		Handler: api,
@@ -66,30 +66,4 @@ func run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func initLogger() (*zap.Logger, error) {
-	logLevel := zap.InfoLevel
-	if debug {
-		logLevel = zap.DebugLevel
-	}
-	return zap.Config{
-		Level:       zap.NewAtomicLevelAt(logLevel),
-		Development: false,
-		Encoding:    "json",
-		EncoderConfig: zapcore.EncoderConfig{
-			TimeKey:        "time",
-			LevelKey:       "severity",
-			MessageKey:     "message",
-			CallerKey:      "caller",
-			StacktraceKey:  "stacktrace",
-			LineEnding:     zapcore.DefaultLineEnding,
-			EncodeLevel:    zapcore.CapitalLevelEncoder,
-			EncodeTime:     zapcore.ISO8601TimeEncoder,
-			EncodeDuration: zapcore.SecondsDurationEncoder,
-			EncodeCaller:   zapcore.ShortCallerEncoder,
-		},
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-	}.Build()
 }

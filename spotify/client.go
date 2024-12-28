@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/nermin-io/spotify-service/logging"
 	"go.uber.org/zap"
 	"net/http"
 	"net/url"
@@ -14,7 +15,6 @@ import (
 )
 
 type Client struct {
-	logger         *zap.Logger
 	httpClient     *http.Client
 	baseURL        string
 	credentialsURL string
@@ -25,9 +25,8 @@ type Client struct {
 	refreshToken   string
 }
 
-func NewClient(logger *zap.Logger) *Client {
+func NewClient() *Client {
 	return &Client{
-		logger:         logger,
 		httpClient:     http.DefaultClient,
 		baseURL:        os.Getenv("SPOTIFY_BASE_URL"),
 		credentialsURL: os.Getenv("SPOTIFY_CREDENTIALS_URL"),
@@ -54,7 +53,7 @@ type tokenResponse struct {
 }
 
 func (sc *Client) refreshAccessToken(ctx context.Context) error {
-	sc.logger.Debug("refreshing access token")
+	logger := logging.FromContext(ctx)
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
@@ -76,7 +75,7 @@ func (sc *Client) refreshAccessToken(ctx context.Context) error {
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			sc.logger.Error("could not close response body", zap.Error(err))
+			logger.Error("could not close response body", zap.Error(err))
 		}
 	}()
 
