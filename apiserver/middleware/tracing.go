@@ -26,8 +26,6 @@ func extractTraceFromReq(r *http.Request) string {
 	// We get the trace from the 'traceparent' header, which is
 	// formatted as: 00-<trace-id>-<span-id>-<trace-flags>
 	headerVal := r.Header.Get("traceparent")
-	fmt.Println("traceparent", headerVal)
-	fmt.Println("projectID", projectID)
 	segments := strings.Split(headerVal, "-")
 	if len(segments) >= 2 && projectID != "" {
 		return fmt.Sprintf("projects/%s/traces/%s", projectID, segments[1])
