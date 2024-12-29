@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var projectID = os.Getenv("X_GOOGLE_CLOUD_PROJECT")
+var projectID = os.Getenv("GCP_PROJECT_ID")
 
 func Tracing(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
