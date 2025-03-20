@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
+
 	"github.com/nermin-io/spotify-service/apiserver/middleware"
 	"github.com/nermin-io/spotify-service/logging"
 	"github.com/nermin-io/spotify-service/spotify"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"strings"
 )
 
 func NewHandler(spotifyClient *spotify.Client) http.Handler {

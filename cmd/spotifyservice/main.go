@@ -5,14 +5,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/nermin-io/spotify-service/apiserver"
-	"github.com/nermin-io/spotify-service/logging"
-	"github.com/nermin-io/spotify-service/spotify"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/nermin-io/spotify-service/apiserver"
+	"github.com/nermin-io/spotify-service/logging"
+	"github.com/nermin-io/spotify-service/spotify"
+	"go.uber.org/zap"
 )
 
 var debug bool

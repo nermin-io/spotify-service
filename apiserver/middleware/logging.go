@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/nermin-io/spotify-service/logging"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
+
+	"github.com/nermin-io/spotify-service/logging"
+	"go.uber.org/zap"
 )
 
 func Logger(next http.Handler) http.Handler {

@@ -2,6 +2,7 @@ package logging
 
 import (
 	"context"
+
 	"github.com/nermin-io/spotify-service/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

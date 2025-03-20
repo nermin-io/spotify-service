@@ -6,12 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/nermin-io/spotify-service/logging"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/nermin-io/spotify-service/logging"
+	"go.uber.org/zap"
 )
 
 type Client struct {

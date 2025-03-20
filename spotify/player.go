@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/nermin-io/spotify-service/logging"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type CurrentlyPlaying struct {

@@ -3,10 +3,11 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"github.com/nermin-io/spotify-service/trace"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/nermin-io/spotify-service/trace"
 )
 
 var projectID = os.Getenv("GCP_PROJECT_ID")
