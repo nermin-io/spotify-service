@@ -11,13 +11,13 @@ import (
 )
 
 type CurrentlyPlaying struct {
-	Timestamp            int                    `json:"timestamp"`
-	Progress             int                    `json:"progress_ms"`
-	Context              *Context               `json:"context"`
-	CurrentlyPlayingType string                 `json:"currently_playing_type"`
-	IsPlaying            bool                   `json:"is_playing"`
-	Actions              map[string]interface{} `json:"actions"`
-	Item                 *Track                 `json:"item"`
+	Timestamp            int            `json:"timestamp"`
+	Progress             int            `json:"progress_ms"`
+	Context              *Context       `json:"context"`
+	CurrentlyPlayingType string         `json:"currently_playing_type"`
+	IsPlaying            bool           `json:"is_playing"`
+	Actions              map[string]any `json:"actions"`
+	Item                 *Track         `json:"item"`
 }
 
 func (sc *Client) CurrentlyPlayingTrack(ctx context.Context) (*CurrentlyPlaying, error) {

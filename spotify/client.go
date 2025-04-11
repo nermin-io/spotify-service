@@ -66,7 +66,7 @@ func (sc *Client) refreshAccessToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not create request: %w", err)
 	}
-	basicToken := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", sc.clientID, sc.clientSecret)))
+	basicToken := base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "%s:%s", sc.clientID, sc.clientSecret))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", fmt.Sprintf("Basic %s", basicToken))
 
